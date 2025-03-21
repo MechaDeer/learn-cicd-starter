@@ -2,6 +2,7 @@ package auth
 
 import (
 	"net/http"
+	"strings"
 	"testing"
 )
 
@@ -10,7 +11,7 @@ func TestGetAPIKey(t *testing.T) {
 		name    string
 		headers http.Header
 		apiKey  string
-		wantErr bool
+		wantErr string
 	}{
 		{
 			name: "Malformed header",
@@ -18,7 +19,7 @@ func TestGetAPIKey(t *testing.T) {
 				"Authorization": []string{"Bearer valid_token"},
 			},
 			apiKey:  "",
-			wantErr: true,
+			wantErr: "malformed authorization header",
 		},
 		{
 			name: "Missing auth header",
@@ -26,7 +27,7 @@ func TestGetAPIKey(t *testing.T) {
 				"Authorizatio": []string{"Bearer valid_token"},
 			},
 			apiKey:  "",
-			wantErr: true,
+			wantErr: "no authorization header included",
 		},
 		{
 			name: "Valid auth token",
@@ -34,14 +35,17 @@ func TestGetAPIKey(t *testing.T) {
 				"Authorization": []string{"ApiKey valid_token"},
 			},
 			apiKey:  "valid_token",
-			wantErr: false,
+			wantErr: "",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			gotKey, err := GetAPIKey(tt.headers)
-			if (err != nil) != tt.wantErr {
+			if err != nil {
+				if strings.Contains(err.Error(), tt.wantErr) {
+					return
+				}
 				t.Errorf("GetBearerToken() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}

@@ -20,3 +20,6 @@ jobs:
 
       - name: Test Auth code
         run: go test ./...
+
+      - name: Code coverage check
+        run: go test -cover
